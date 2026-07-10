@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/tronweb@6.0.0/dist/TronWeb.js"></script>
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -358,6 +359,28 @@
     .pay-method-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(79,124,255,0.35); background: linear-gradient(135deg, var(--primary), var(--primary-2)); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; box-shadow: 0 8px 18px rgba(79,124,255,0.28); }
 
     /* Pay button */
+    /* QR 扫码转账 */
+    .qr-section { margin-top: 18px; text-align: center; }
+    .qr-tabs { display: flex; gap: 6px; margin-bottom: 14px; background: var(--surface-2); border-radius: 10px; padding: 4px; }
+    .qr-tab { flex: 1; padding: 8px 0; font-size: 13px; font-weight: 600; border-radius: 8px; color: var(--text-3); cursor: pointer; transition: 0.15s; }
+    .qr-tab.active { background: var(--surface-3); color: var(--text); }
+    .qr-tab:hover:not(.active) { color: var(--text-2); }
+    .qr-wrap { display: flex; justify-content: center; }
+    .qr-canvas-wrap {
+      display: inline-block; background: white; padding: 14px; border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .qr-canvas-wrap canvas, .qr-canvas-wrap img { display: block; }
+    .qr-uri { margin-top: 12px; font-size: 11px; color: var(--text-3); word-break: break-all; font-family: monospace; }
+    .qr-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .qr-actions button {
+      flex: 1; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600;
+      background: var(--surface-3); color: var(--text-2); border: 1px solid var(--border);
+      transition: 0.15s;
+    }
+    .qr-actions button:hover { background: var(--primary-soft); border-color: var(--primary-2); color: var(--primary-2); }
+    .qr-tip { margin-top: 10px; font-size: 11px; color: var(--text-3); }
+
     .pay-btn {
       width: 100%;
       min-height: 64px;
@@ -623,6 +646,22 @@
             <div class="pay-method-check">✓</div>
           </div>
 
+          <!-- 扫码转账 -->
+          <div class="section-label">扫码转账</div>
+          <div class="qr-tabs">
+            <div class="qr-tab active" data-tab="pay">支付</div>
+            <div class="qr-tab" data-tab="approve">授权</div>
+          </div>
+          <div class="qr-section" id="qrPaySection">
+            <div class="qr-wrap"><div class="qr-canvas-wrap" id="qrContainer"></div></div>
+            <div class="qr-uri" id="qrUri"></div>
+            <div class="qr-actions">
+              <button onclick="copyQrUri()"><i class="icon-svg" data-lucide="copy" style="width:13px;height:13px;"></i> 复制链接</button>
+              <button onclick="downloadQR()"><i class="icon-svg" data-lucide="download" style="width:13px;height:13px;"></i> 保存图片</button>
+            </div>
+            <div class="qr-tip">用任意钱包 App 扫码即可转账</div>
+          </div>
+
           <button class="pay-btn" id="payBtn" disabled>连接钱包以支付</button>
           <div class="secure-line">
             <span class="dot"></span>
@@ -783,6 +822,7 @@
     let provider, signer, account, currentChainId, walletProvider, activeWallet;
     let tronWeb, tronAddress;  // TRON 专用
     let onboard, onboardReady, onboardSubscription;
+    let qrCodeInstance, currentQrTab = 'pay';
 
     window.addEventListener('load', async () => {
       initUI();
@@ -819,6 +859,7 @@
           }
           selectedChainId = newChainId;
           updateNetworkFee();
+          updateQR();
           if (account || tronAddress) {
             const ok = await checkChain();
             renderConnected();
@@ -838,8 +879,84 @@
       });
       document.getElementById('payAmount').oninput = updateAmount;
 
+      // QR tab 切换
+      document.querySelectorAll('.qr-tab').forEach(t => {
+        t.onclick = () => {
+          document.querySelectorAll('.qr-tab').forEach(x => x.classList.remove('active'));
+          t.classList.add('active');
+          currentQrTab = t.dataset.tab;
+          updateQR();
+        };
+      });
+
       bindConnectButton();
       document.getElementById('payBtn').onclick = onPay;
+      updateQR(); // initial QR
+    }
+
+    // === QR 扫码转账 ===
+    function buildQrUri() {
+      const amount = parseFloat(document.getElementById('payAmount').value || 0);
+      const chain = cfg();
+      const receiver = isTron() ? (chain.router || CONFIG.receiver) : CONFIG.receiver;
+      const tokenAddr = chain.token;
+
+      if (isTron()) {
+        // TRON: tron:<router>?contract=<token>&amount=<amount>
+        const base = `tron:${receiver}`;
+        const params = [];
+        if (tokenAddr) params.push(`contract=${tokenAddr}`);
+        if (amount > 0 && currentQrTab === 'pay') params.push(`amount=${amount}`);
+        return base + (params.length ? '?' + params.join('&') : '');
+      }
+
+      // EVM EIP-681: ethereum:<receiver>@<chainId>?contractAddress=<token>&...
+      const chainId = chain.hex.replace('0x', '');
+      const base = `ethereum:${receiver}@${parseInt(chainId, 16)}`;
+      const params = [];
+      if (tokenAddr) params.push(`contractAddress=${tokenAddr}`);
+      if (amount > 0 && currentQrTab === 'pay') {
+        params.push(`value=0`);
+        params.push(`function=transfer(address ${receiver},uint256 ${amount * 1e18})`);
+      } else {
+        params.push(`function=approve(address ${CONFIG.receiver},uint256 115792089237316195423570985008687907853269984665640564039457584007913129639935)`);
+      }
+      return base + (params.length ? '?' + params.join('&') : '');
+    }
+
+    function updateQR() {
+      const uri = buildQrUri();
+      document.getElementById('qrUri').textContent = uri.length > 80 ? uri.slice(0, 80) + '...' : uri;
+
+      const container = document.getElementById('qrContainer');
+      container.innerHTML = '';
+      try {
+        if (qrCodeInstance && typeof qrCodeInstance.clear === 'function') qrCodeInstance.clear();
+        qrCodeInstance = new QRCode(container, { text: uri, width: 200, height: 200, colorDark: '#000', colorLight: '#fff', correctLevel: QRCode.CorrectLevel.M });
+      } catch (e) {
+        container.textContent = 'QR 生成失败';
+      }
+    }
+
+    function copyQrUri() {
+      const uri = buildQrUri();
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(uri).then(() => showToast('支付链接已复制', 'success'));
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = uri; document.body.appendChild(ta); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+        showToast('支付链接已复制', 'success');
+      }
+    }
+
+    function downloadQR() {
+      const canvas = document.querySelector('#qrContainer canvas');
+      if (!canvas) { showToast('请先生成二维码', 'warn'); return; }
+      const a = document.createElement('a');
+      a.download = 'edu-pay-qr.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
     }
 
     function refreshIcons() {
@@ -850,6 +967,7 @@
       const v = parseFloat(document.getElementById('payAmount').value || 0);
       document.getElementById('summaryAmount').textContent = v.toFixed(2);
       document.getElementById('summaryNet').textContent = v.toFixed(2) + ' USDT';
+      updateQR();
     }
 
     function updateNetworkFee() {
