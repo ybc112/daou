@@ -1,0 +1,131 @@
+- main [ref=f1e2]:
+  - generic [ref=f1e3]:
+    - generic [ref=f1e4]:
+      - img [ref=f1e6]
+      - generic [ref=f1e9]:
+        - strong [ref=f1e10]: EduPass Campus
+        - generic [ref=f1e11]: BNB Chain 课程授权结账台
+    - button "连接钱包" [ref=f1e12] [cursor=pointer]:
+      - img [ref=f1e13]
+      - generic [ref=f1e16]: 连接钱包
+  - generic [ref=f1e17]:
+    - generic [ref=f1e18]:
+      - generic [ref=f1e19]:
+        - img "校园课程学习场景" [ref=f1e20]
+        - generic [ref=f1e21]:
+          - generic [ref=f1e22]:
+            - img [ref=f1e23]
+            - text: 链上购买 · 即时授权
+          - heading "校园教学资源包" [level=1] [ref=f1e26]
+          - paragraph [ref=f1e27]: 购买后生成链上订单记录，适合课程授权、实训资源、会员学习权益等作业场景。
+      - generic [ref=f1e28]:
+        - generic [ref=f1e29]:
+          - heading "选择商品" [level=2] [ref=f1e30]
+          - generic [ref=f1e31]:
+            - img [ref=f1e32]
+            - text: BEP20 默认精确授权
+        - generic [ref=f1e35]:
+          - button "课程授权标准版 适合一次课堂展示，包含完整实验步骤和订单凭证。 0.01 BNB 99 EDU" [pressed] [ref=f1e36] [cursor=pointer]:
+            - img [ref=f1e38]
+            - heading "课程授权标准版" [level=3] [ref=f1e41]
+            - paragraph [ref=f1e42]: 适合一次课堂展示，包含完整实验步骤和订单凭证。
+            - generic [ref=f1e43]:
+              - generic [ref=f1e44]:
+                - strong [ref=f1e45]: "0.01"
+                - text: BNB
+              - generic [ref=f1e46]: 99 EDU
+          - button "班级实训高级版 适合小组作业，包含批量账号、案例素材和验收清单。 0.03 BNB 249 EDU" [ref=f1e47] [cursor=pointer]:
+            - img [ref=f1e49]
+            - heading "班级实训高级版" [level=3] [ref=f1e54]
+            - paragraph [ref=f1e55]: 适合小组作业，包含批量账号、案例素材和验收清单。
+            - generic [ref=f1e56]:
+              - generic [ref=f1e57]:
+                - strong [ref=f1e58]: "0.03"
+                - text: BNB
+              - generic [ref=f1e59]: 249 EDU
+          - button "校园无限学习包 适合完整项目答辩，包含链上购买、授权和后台发放流程。 0.08 BNB 699 EDU" [ref=f1e60] [cursor=pointer]:
+            - img [ref=f1e62]
+            - heading "校园无限学习包" [level=3] [ref=f1e64]
+            - paragraph [ref=f1e65]: 适合完整项目答辩，包含链上购买、授权和后台发放流程。
+            - generic [ref=f1e66]:
+              - generic [ref=f1e67]:
+                - strong [ref=f1e68]: "0.08"
+                - text: BNB
+              - generic [ref=f1e69]: 699 EDU
+        - generic [ref=f1e70]:
+          - generic [ref=f1e71]:
+            - generic [ref=f1e72]: 交付内容
+            - strong [ref=f1e73]: 课件 + 实验 + 证书
+          - generic [ref=f1e74]:
+            - generic [ref=f1e75]: 订单网络
+            - strong [ref=f1e76]: BNB Testnet
+          - generic [ref=f1e77]:
+            - generic [ref=f1e78]: 授权方式
+            - strong [ref=f1e79]: 链上付款确认
+    - complementary [ref=f1e80]:
+      - generic [ref=f1e81]:
+        - heading "结账" [level=2] [ref=f1e82]
+        - generic [ref=f1e83]:
+          - img [ref=f1e84]
+          - text: 未连接
+      - generic [ref=f1e87]:
+        - generic [ref=f1e88]: 付款网络
+        - combobox "付款网络" [ref=f1e89]:
+          - option "BNB Testnet" [selected]
+          - option "BNB Smart Chain"
+      - generic [ref=f1e90]:
+        - generic [ref=f1e91]: CourseStore 合约地址
+        - textbox "CourseStore 合约地址" [ref=f1e92]:
+          - /placeholder: 0x...
+      - generic [ref=f1e93]:
+        - generic [ref=f1e94]: BEP20 代币地址
+        - textbox "BEP20 代币地址" [ref=f1e95]:
+          - /placeholder: 0x...（EDU / USDT / 自定义代币）
+      - generic "付款方式" [ref=f1e96]:
+        - button "BNB" [ref=f1e97] [cursor=pointer]:
+          - img [ref=f1e98]
+          - text: BNB
+        - button "BEP20" [ref=f1e103] [cursor=pointer]:
+          - img [ref=f1e104]
+          - text: BEP20
+      - generic [ref=f1e107]:
+        - generic [ref=f1e108]:
+          - generic [ref=f1e109]: 商品
+          - strong [ref=f1e110]: 课程授权标准版
+        - generic [ref=f1e111]:
+          - generic [ref=f1e112]: 数量
+          - strong [ref=f1e113]: "1"
+        - generic [ref=f1e114]:
+          - generic [ref=f1e115]: 应付
+          - strong [ref=f1e116]: 0.01 BNB
+      - generic [ref=f1e117]:
+        - button "切换到 BNB Chain" [ref=f1e118] [cursor=pointer]:
+          - img [ref=f1e119]
+          - generic [ref=f1e124]: 切换到 BNB Chain
+        - button "同步链上价格" [ref=f1e125] [cursor=pointer]:
+          - img [ref=f1e126]
+          - generic [ref=f1e130]: 同步链上价格
+        - button "支付 BNB" [ref=f1e131] [cursor=pointer]:
+          - img [ref=f1e132]
+          - generic [ref=f1e134]: 支付 BNB
+      - generic [ref=f1e135]:
+        - strong [ref=f1e136]: 订单状态
+        - text: 等待钱包连接和合约地址。
+  - generic [ref=f1e137]:
+    - heading "订单流程" [level=2] [ref=f1e138]
+    - generic [ref=f1e139]:
+      - generic [ref=f1e140]:
+        - img [ref=f1e142]
+        - generic [ref=f1e145]:
+          - strong [ref=f1e146]: 选择课程商品
+          - text: 价格可从部署后的 CourseStore 合约同步。
+      - generic [ref=f1e147]:
+        - img [ref=f1e149]
+        - generic [ref=f1e152]:
+          - strong [ref=f1e153]: 使用 BNB Chain 钱包付款
+          - text: 原生 BNB 直接付款，BEP20 先精确授权再结算。
+      - generic [ref=f1e154]:
+        - img [ref=f1e156]
+        - generic [ref=f1e158]:
+          - strong [ref=f1e159]: 生成链上订单
+          - text: 交易哈希可在 BscScan 查看，后台可按事件发放权益。

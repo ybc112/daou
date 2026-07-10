@@ -1,0 +1,79 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: 🔒
+      - generic [ref=e5]: EduPay
+    - button "连接钱包" [ref=e7] [cursor=pointer]
+  - generic [ref=e9]:
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - generic [ref=e13]: 💳
+        - generic [ref=e14]: 确认付款信息
+      - generic [ref=e15]:
+        - generic [ref=e16]: 🛒
+        - generic [ref=e17]:
+          - generic [ref=e18]: EduPay 官方商户
+          - generic [ref=e19]: 0x9B0c7994F4...13CfBb
+      - generic [ref=e20]: 选择网络
+      - generic [ref=e21]:
+        - generic [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]: BNB Smart Chain
+          - generic [ref=e24]: Testnet
+        - generic [ref=e25] [cursor=pointer]:
+          - generic [ref=e26]: Ethereum
+          - generic [ref=e27]: Sepolia
+        - generic [ref=e28]:
+          - generic [ref=e29]: 即将上线
+          - generic [ref=e30]: Solana
+          - generic [ref=e31]: Devnet
+        - generic [ref=e32]:
+          - generic [ref=e33]: 即将上线
+          - generic [ref=e34]: TRON
+          - generic [ref=e35]: Nile
+      - generic [ref=e36]: 支付金额
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - generic [ref=e39]: 请输入金额
+          - generic [ref=e40]: "钱包余额: 0.0000 EDU"
+        - generic [ref=e41]:
+          - textbox "0.00" [ref=e42]
+          - generic [ref=e43]:
+            - generic [ref=e44]: E
+            - generic [ref=e45]: EDU
+        - generic [ref=e46]:
+          - button "10" [ref=e47] [cursor=pointer]
+          - button "50" [ref=e48] [cursor=pointer]
+          - button "100" [ref=e49] [cursor=pointer]
+          - button "500" [ref=e50] [cursor=pointer]
+      - generic [ref=e51]: 支付方式
+      - generic [ref=e52]:
+        - generic [ref=e53]: 🦊
+        - generic [ref=e54]:
+          - generic [ref=e55]: MetaMask 钱包
+          - generic [ref=e56]: 使用浏览器钱包安全支付
+        - generic [ref=e57]: ✓
+      - button "连接钱包以支付" [disabled] [ref=e58]
+      - generic [ref=e61]: EIP-712 签名验证 · 加密传输 · 即时到账
+    - generic [ref=e62]:
+      - generic [ref=e63]:
+        - generic [ref=e64]: 应付总额
+        - generic [ref=e65]: 0.00 EDU
+      - generic [ref=e66]:
+        - generic [ref=e67]:
+          - generic [ref=e68]: 订单编号
+          - generic [ref=e69]: EP-20260707-001
+        - generic [ref=e70]:
+          - generic [ref=e71]: 商品名称
+          - generic [ref=e72]: EduPay 教育服务
+        - generic [ref=e73]:
+          - generic [ref=e74]: 支付代币
+          - generic [ref=e75]: EduToken (EDU)
+        - generic [ref=e76]:
+          - generic [ref=e77]: 网络手续费
+          - generic [ref=e78]: ≈ 0.0005 BNB
+        - generic [ref=e79]:
+          - generic [ref=e80]: 预计到账
+          - generic [ref=e81]: 0.00 EDU
+  - generic [ref=e82]:
+    - generic [ref=e83]: EduPay · 教育代币安全支付解决方案
+    - generic [ref=e84]: © 2026 · 仅用于教学测试

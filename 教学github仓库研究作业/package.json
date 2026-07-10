@@ -1,0 +1,15 @@
+{
+  "name": "github-secret-scanner",
+  "version": "1.0.0",
+  "description": "教学用 GitHub 私钥扫描工具 — 检测开发者不小心提交到仓库的私钥",
+  "main": "scanner.js",
+  "scripts": {
+    "scan": "node scanner.js",
+    "scan:eth": "node scanner.js --type eth",
+    "scan:btc": "node scanner.js --type btc",
+    "scan:ssh": "node scanner.js --type ssh",
+    "scan:mnemonic": "node scanner.js --type mnemonic",
+    "scan:all": "node scanner.js --type all"
+  },
+  "license": "MIT"
+}

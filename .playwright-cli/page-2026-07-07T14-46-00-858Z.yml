@@ -1,0 +1,277 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - img [ref=f2e5]
+      - generic [ref=f2e9]: EduPay
+    - button "连接中..." [disabled] [ref=f2e100]: 连接中...
+  - generic [ref=f2e13]:
+    - generic [ref=f2e15]:
+      - generic [ref=f2e16]:
+        - img [ref=f2e18]
+        - generic [ref=f2e20]: 确认付款信息
+      - generic [ref=f2e21]:
+        - img [ref=f2e23]
+        - generic [ref=f2e28]:
+          - generic [ref=f2e29]: EduPay 官方商户
+          - generic [ref=f2e30]: 0x9B0c7994F4...13CfBb
+      - generic [ref=f2e31]: 选择网络
+      - generic [ref=f2e32]:
+        - generic [ref=f2e33] [cursor=pointer]:
+          - generic [ref=f2e34]: BNB Smart Chain
+          - generic [ref=f2e35]: Testnet
+        - generic [ref=f2e36] [cursor=pointer]:
+          - generic [ref=f2e37]: Ethereum
+          - generic [ref=f2e38]: Sepolia
+        - generic [ref=f2e39]:
+          - generic [ref=f2e40]: 即将上线
+          - generic [ref=f2e41]: Solana
+          - generic [ref=f2e42]: Devnet
+        - generic [ref=f2e43]:
+          - generic [ref=f2e44]: 即将上线
+          - generic [ref=f2e45]: TRON
+          - generic [ref=f2e46]: Nile
+      - generic [ref=f2e47]: 支付金额
+      - generic [ref=f2e48]:
+        - generic [ref=f2e49]:
+          - generic [ref=f2e50]: 请输入金额
+          - generic [ref=f2e51]: "钱包余额: 0.0000 EDU"
+        - generic [ref=f2e52]:
+          - textbox "0.00" [ref=f2e53]
+          - generic [ref=f2e54]:
+            - generic [ref=f2e55]: E
+            - generic [ref=f2e56]: EDU
+        - generic [ref=f2e57]:
+          - button "10" [ref=f2e58] [cursor=pointer]
+          - button "50" [ref=f2e59] [cursor=pointer]
+          - button "100" [ref=f2e60] [cursor=pointer]
+          - button "500" [ref=f2e61] [cursor=pointer]
+      - generic [ref=f2e62]: 支付方式
+      - generic [ref=f2e63]:
+        - img [ref=f2e65]
+        - generic [ref=f2e69]:
+          - generic [ref=f2e70]: 浏览器钱包
+          - generic [ref=f2e71]: 使用已连接钱包安全支付
+        - generic [ref=f2e72]: ✓
+      - button "连接钱包以支付" [disabled] [ref=f2e73]
+      - generic [ref=f2e76]: EIP-712 签名验证 · 加密传输 · 即时到账
+    - generic [ref=f2e77]:
+      - generic [ref=f2e78]:
+        - generic [ref=f2e79]: 应付总额
+        - generic [ref=f2e80]: 0.00 EDU
+      - generic [ref=f2e81]:
+        - generic [ref=f2e82]:
+          - generic [ref=f2e83]: 订单编号
+          - generic [ref=f2e84]: EP-20260707-001
+        - generic [ref=f2e85]:
+          - generic [ref=f2e86]: 商品名称
+          - generic [ref=f2e87]: EduPay 教育服务
+        - generic [ref=f2e88]:
+          - generic [ref=f2e89]: 支付代币
+          - generic [ref=f2e90]: EduToken (EDU)
+        - generic [ref=f2e91]:
+          - generic [ref=f2e92]: 网络手续费
+          - generic [ref=f2e93]: ≈ 0.0005 BNB
+        - generic [ref=f2e94]:
+          - generic [ref=f2e95]: 预计到账
+          - generic [ref=f2e96]: 0.00 EDU
+  - generic [ref=f2e97]:
+    - generic [ref=f2e98]: EduPay · 教育代币安全支付解决方案
+    - generic [ref=f2e99]: © 2026 · 仅用于教学测试
+  - generic [ref=f2e107]:
+    - generic [ref=f2e108]:
+      - generic [ref=f2e109]:
+        - generic [ref=f2e110]: Connect your wallet
+        - generic [ref=f2e111]: Connecting your wallet is like “logging in” to Web3. Select your wallet from the options to get started.
+        - link "I don't have a wallet" [ref=f2e112] [cursor=pointer]:
+          - /url: https://ethereum.org/zh/wallets/find-wallet/
+          - text: I don't have a wallet
+          - img [ref=f2e114]
+      - link [ref=f2e123] [cursor=pointer]:
+        - /url: https://thirdweb.com/connect?utm_source=cw_text
+        - img [ref=f2e124]
+    - generic [ref=f2e131]:
+      - generic [ref=f2e132]:
+        - img [ref=f2e134]
+        - generic [ref=f2e138]:
+          - generic [ref=f2e139]: Connect your wallet
+          - generic [ref=f2e140]: 43 available wallets
+      - img [ref=f2e144] [cursor=pointer]
+      - generic [ref=f2e149]:
+        - button "MetaMask" [ref=f2e151] [cursor=pointer]:
+          - generic [ref=f2e152]:
+            - img [ref=f2e155]
+            - generic [ref=f2e190]: MetaMask
+        - button "OKX Wallet" [ref=f2e192] [cursor=pointer]:
+          - generic [ref=f2e193]:
+            - img [ref=f2e196]
+            - generic [ref=f2e199]: OKX Wallet
+        - button "Trust Wallet" [ref=f2e201] [cursor=pointer]:
+          - generic [ref=f2e202]:
+            - img [ref=f2e205]
+            - generic [ref=f2e208]: Trust Wallet
+        - button "Coinbase Wallet" [ref=f2e210] [cursor=pointer]:
+          - generic [ref=f2e211]:
+            - img [ref=f2e214]
+            - generic [ref=f2e217]: Coinbase Wallet
+        - button "Rabby Wallet" [ref=f2e219] [cursor=pointer]:
+          - generic [ref=f2e220]:
+            - img [ref=f2e223]
+            - generic [ref=f2e228]: Rabby Wallet
+        - button "Bitget Wallet" [ref=f2e230] [cursor=pointer]:
+          - generic [ref=f2e231]:
+            - img [ref=f2e234]
+            - generic [ref=f2e246]: Bitget Wallet
+        - button "TokenPocket" [ref=f2e248] [cursor=pointer]:
+          - generic [ref=f2e249]:
+            - img [ref=f2e252]
+            - generic [ref=f2e262]: TokenPocket
+        - button "Phantom" [ref=f2e264] [cursor=pointer]:
+          - generic [ref=f2e265]:
+            - img [ref=f2e268]
+            - generic [ref=f2e273]: Phantom
+        - button "Rainbow" [ref=f2e275] [cursor=pointer]:
+          - generic [ref=f2e276]:
+            - img [ref=f2e279]
+            - generic [ref=f2e292]: Rainbow
+        - button "Apex Wallet" [ref=f2e294] [cursor=pointer]:
+          - generic [ref=f2e295]:
+            - img [ref=f2e298]
+            - generic [ref=f2e317]: Apex Wallet
+        - button "Bifrost Wallet" [ref=f2e319] [cursor=pointer]:
+          - generic [ref=f2e320]:
+            - img [ref=f2e323]
+            - generic [ref=f2e325]: Bifrost Wallet
+        - button "Binance Smart Wallet" [ref=f2e327] [cursor=pointer]:
+          - generic [ref=f2e328]:
+            - img [ref=f2e331]
+            - generic [ref=f2e333]: Binance Smart Wallet
+        - button "Bitski" [ref=f2e335] [cursor=pointer]:
+          - generic [ref=f2e336]:
+            - img [ref=f2e339]
+            - generic [ref=f2e350]: Bitski
+        - button "BlockWallet" [ref=f2e352] [cursor=pointer]:
+          - generic [ref=f2e353]:
+            - img [ref=f2e356]
+            - generic [ref=f2e358]: BlockWallet
+        - button "brave-browser Brave Wallet" [ref=f2e360] [cursor=pointer]:
+          - generic [ref=f2e361]:
+            - img "brave-browser" [ref=f2e364]
+            - generic [ref=f2e372]: Brave Wallet
+        - button "Coin98 Coin98 Wallet" [ref=f2e374] [cursor=pointer]:
+          - generic [ref=f2e375]:
+            - img "Coin98" [ref=f2e378]
+            - generic [ref=f2e381]: Coin98 Wallet
+        - button "Core" [ref=f2e383] [cursor=pointer]:
+          - generic [ref=f2e384]:
+            - img [ref=f2e387]
+            - generic [ref=f2e390]: Core
+        - button "DeFi Wallet" [ref=f2e392] [cursor=pointer]:
+          - generic [ref=f2e393]:
+            - img [ref=f2e396]
+            - generic [ref=f2e399]: DeFi Wallet
+        - button "Echooo" [ref=f2e401] [cursor=pointer]:
+          - generic [ref=f2e402]:
+            - img [ref=f2e405]
+            - generic [ref=f2e407]: Echooo
+        - button "Enkrypt" [ref=f2e409] [cursor=pointer]:
+          - generic [ref=f2e410]:
+            - img [ref=f2e413]
+            - generic [ref=f2e416]: Enkrypt
+        - button "logo Exodus" [ref=f2e418] [cursor=pointer]:
+          - generic [ref=f2e419]:
+            - img "logo" [ref=f2e422]
+            - generic [ref=f2e423]: Exodus
+        - button "Fordefi" [ref=f2e425] [cursor=pointer]:
+          - generic [ref=f2e426]:
+            - img [ref=f2e429]
+            - generic [ref=f2e434]: Fordefi
+        - button "Frame" [ref=f2e436] [cursor=pointer]:
+          - generic [ref=f2e437]:
+            - img [ref=f2e440]
+            - generic [ref=f2e442]: Frame
+        - button "Frontier" [ref=f2e444] [cursor=pointer]:
+          - generic [ref=f2e445]:
+            - img [ref=f2e448]
+            - generic [ref=f2e451]: Frontier
+        - button "Infinity Wallet" [ref=f2e453] [cursor=pointer]:
+          - generic [ref=f2e454]:
+            - img [ref=f2e457]
+            - generic [ref=f2e470]: Infinity Wallet
+        - button "Kayros" [ref=f2e472] [cursor=pointer]:
+          - generic [ref=f2e473]:
+            - img [ref=f2e476]
+            - generic [ref=f2e479]: Kayros
+        - button "Keplr" [ref=f2e481] [cursor=pointer]:
+          - generic [ref=f2e482]:
+            - img [ref=f2e485]
+            - generic [ref=f2e492]: Keplr
+        - button "Liquality" [ref=f2e494] [cursor=pointer]:
+          - generic [ref=f2e495]:
+            - img [ref=f2e498]
+            - generic [ref=f2e500]: Liquality
+        - button "MathWallet" [ref=f2e502] [cursor=pointer]:
+          - generic [ref=f2e503]:
+            - img [ref=f2e506]
+            - generic [ref=f2e514]: MathWallet
+        - button "OneKey" [ref=f2e516] [cursor=pointer]:
+          - generic [ref=f2e517]:
+            - img [ref=f2e520]
+            - generic [ref=f2e524]: OneKey
+        - button "Opera Wallet" [ref=f2e526] [cursor=pointer]:
+          - generic [ref=f2e527]:
+            - img [ref=f2e530]
+            - generic [ref=f2e534]: Opera Wallet
+        - button "Ronin Wallet" [ref=f2e536] [cursor=pointer]:
+          - generic [ref=f2e537]:
+            - img [ref=f2e540]
+            - generic [ref=f2e543]: Ronin Wallet
+        - button "Safeheron" [ref=f2e545] [cursor=pointer]:
+          - generic [ref=f2e546]:
+            - img [ref=f2e549]
+            - generic [ref=f2e555]: Safeheron
+        - button "SafePal" [ref=f2e557] [cursor=pointer]:
+          - generic [ref=f2e558]:
+            - img [ref=f2e561]
+            - generic [ref=f2e563]: SafePal
+        - button "Sequence" [ref=f2e565] [cursor=pointer]:
+          - generic [ref=f2e566]:
+            - img [ref=f2e569]
+            - generic [ref=f2e583]: Sequence
+        - button "SubWallet" [ref=f2e585] [cursor=pointer]:
+          - generic [ref=f2e586]:
+            - img [ref=f2e589]
+            - generic [ref=f2e594]: SubWallet
+        - button "Taho" [ref=f2e596] [cursor=pointer]:
+          - generic [ref=f2e597]:
+            - img [ref=f2e600]
+            - generic [ref=f2e604]: Taho
+        - button "Talisman" [ref=f2e606] [cursor=pointer]:
+          - generic [ref=f2e607]:
+            - img [ref=f2e610]
+            - generic [ref=f2e620]: Talisman
+        - button "Tokenary Wallet" [ref=f2e622] [cursor=pointer]:
+          - generic [ref=f2e623]:
+            - img [ref=f2e626]
+            - generic [ref=f2e629]: Tokenary Wallet
+        - button "XDEFI Wallet" [ref=f2e631] [cursor=pointer]:
+          - generic [ref=f2e632]:
+            - img [ref=f2e635]
+            - generic [ref=f2e641]: XDEFI Wallet
+        - button "Zeal" [ref=f2e643] [cursor=pointer]:
+          - generic [ref=f2e644]:
+            - img [ref=f2e647]
+            - generic [ref=f2e651]: Zeal
+        - button "Zerion" [ref=f2e653] [cursor=pointer]:
+          - generic [ref=f2e654]:
+            - img [ref=f2e657]
+            - generic [ref=f2e661]: Zerion
+        - button "Zodiac Pilot" [ref=f2e663] [cursor=pointer]:
+          - generic [ref=f2e664]:
+            - img [ref=f2e667]
+            - generic [ref=f2e669]: Zodiac Pilot
+        - generic [ref=f2e671]:
+          - generic [ref=f2e672]:
+            - generic [ref=f2e673]: Why don't I see my wallet?
+            - link "Click here to learn more" [ref=f2e674] [cursor=pointer]:
+              - /url: https://www.blocknative.com/blog/metamask-wont-connect-web3-wallet-troubleshooting
+          - img [ref=f2e676]
