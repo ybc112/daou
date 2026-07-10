@@ -39,6 +39,11 @@ contract EduSwap {
         name = _name;
     }
 
+    function setOperator(address newOperator) external onlyOperator {
+        require(newOperator != address(0), "Zero address");
+        operator = newOperator;
+    }
+
     function addSupportedToken(address token) external onlyOperator {
         supported[token] = true;
     }

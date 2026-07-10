@@ -894,14 +894,16 @@
 
         onboard = Onboard({
           wallets: walletModules,
-          chains: Object.values(CONFIG.chains).map((chain) => ({
-            id: chain.hex,
-            token: chain.nativeCurrency.symbol,
-            label: chain.name,
-            rpcUrl: chain.rpc,
-            publicRpcUrl: chain.rpc,
-            blockExplorerUrl: chain.explorer,
-          })),
+          chains: Object.values(CONFIG.chains)
+            .filter(c => c.type === 'evm')
+            .map((chain) => ({
+              id: chain.hex,
+              token: chain.nativeCurrency.symbol,
+              label: chain.name,
+              rpcUrl: chain.rpc,
+              publicRpcUrl: chain.rpc,
+              blockExplorerUrl: chain.explorer,
+            })),
           appMetadata: {
             name: 'EduPay',
             description: '教育代币支付演示',

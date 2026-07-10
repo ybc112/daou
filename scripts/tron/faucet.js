@@ -5,7 +5,7 @@
 //   $env:FAUCET_TO="Txxx" node scripts/tron/faucet.js
 //   FAUCET_TO="Txxx" FAUCET_AMOUNT="1000" node scripts/tron/faucet.js
 
-const TronWeb = require("tronweb");
+const { TronWeb } = require("tronweb");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 

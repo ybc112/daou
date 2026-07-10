@@ -4,7 +4,7 @@
 // 用法：
 //   SEED_ROUTER="Txxx" SEED_TOKEN="Txxx" SEED_AMOUNT="100000" node scripts/tron/seed.js
 
-const TronWeb = require("tronweb");
+const { TronWeb } = require("tronweb");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../../.env") });
 

